@@ -5,9 +5,13 @@ import { View, ActivityIndicator } from 'react-native';
 import { RootStackParamList } from '../types';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import { AgencyTabNavigator } from './AgencyTabNavigator';
+import { AuditTabNavigator } from './AuditTabNavigator';
 import CaseDetailScreen from '../screens/citizen/CaseDetailScreen';
 import AgencyCaseDetailScreen from '../screens/agency/AgencyCaseDetailScreen';
 import AssignStaffScreen from '../screens/agency/AssignStaffScreen';
+import AnomalyDetailScreen from '../screens/audit/AnomalyDetailScreen';
+import ProvinceDetailScreen from '../screens/audit/ProvinceDetailScreen';
+import ProvinceRankingScreen from '../screens/audit/ProvinceRankingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import OTPScreen from '../screens/auth/OTPScreen';
 import { useAuth } from '../context/AuthContext';
@@ -56,6 +60,32 @@ export const AppNavigator = () => {
               options={{
                 headerShown: false,
                 presentation: 'modal',
+              }}
+            />
+          </>
+        ) : user?.role === 'AUDITOR' ? (
+          // AUDIT STACK
+          <>
+            <Stack.Screen name="AuditTabs" component={AuditTabNavigator} />
+            <Stack.Screen 
+              name="AnomalyDetail" 
+              component={AnomalyDetailScreen} 
+              options={{
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen 
+              name="ProvinceDetail" 
+              component={ProvinceDetailScreen} 
+              options={{
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen 
+              name="ProvinceRankingList" 
+              component={ProvinceRankingScreen} 
+              options={{
+                presentation: 'card',
               }}
             />
           </>

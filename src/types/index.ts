@@ -71,14 +71,80 @@ export interface User {
   };
 }
 
+export interface AuditKPI {
+  totalComplaints: number;
+  pendingCases: number;
+  inProgressCases: number;
+  completedCases: number;
+  suspiciousClosures: number;
+  duplicatedEvidenceFlags: number;
+  slaCompliance: number;
+  avgResolutionTime: string;
+  avgSatisfactionScore: number;
+}
+
+export interface ProvinceMetric {
+  id: string;
+  name: string;
+  totalComplaints: number;
+  avgResolutionHours: number;
+  slaCompliance: number;
+  satisfactionScore: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface AgencyMetric {
+  id: string;
+  name: string;
+  province: string;
+  totalComplaints: number;
+  avgResolutionHours: number;
+  slaCompliance: number;
+  satisfactionScore: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+export type AnomalySeverity = 'low' | 'medium' | 'high';
+
+export interface AnomalyItem {
+  id: string;
+  complaintId: string;
+  title: string;
+  province: string;
+  agency: string;
+  anomalyType: string;
+  severity: AnomalySeverity;
+  detectedAt: string;
+  status: 'pending' | 'investigating' | 'resolved';
+  description: string;
+}
+
+export interface DatasetItem {
+  id: string;
+  title: string;
+  description: string;
+  format: string;
+  lastUpdated: string;
+  endpoint: string;
+  fields: string[];
+  agency?: string;
+  downloadCount?: number;
+}
+
 export type RootStackParamList = {
   Login: undefined;
   OTP: { phoneNumber: string };
   MainTabs: undefined; // Citizen Tabs
   AgencyTabs: undefined; // Agency Tabs
+  AuditTabs: undefined; // Auditor Tabs
   CaseDetail: { caseId: string };
   AgencyCaseDetail: { caseId: string };
   AssignStaff: { caseId: string };
+  AnomalyDetail: { anomalyId: string };
+  ProvinceDetail: { provinceId: string };
+  ProvinceRankingList: undefined;
+  AuditAgencyDetail: { agencyId: string };
+  DatasetDetail: { datasetId: string };
 };
 
 export type MainTabParamList = {
@@ -95,4 +161,12 @@ export type AgencyTabParamList = {
   Dashboard: undefined;
   Map: undefined;
   Settings: undefined;
+};
+
+export type AuditTabParamList = {
+  Overview: undefined;
+  Analytics: undefined;
+  Anomaly: undefined;
+  Ranking: undefined;
+  OpenData: undefined;
 };

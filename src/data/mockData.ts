@@ -1,4 +1,4 @@
-import { Case, User, AgencyStaff } from '../types';
+import { Case, User, AgencyStaff, AuditKPI, ProvinceMetric, AgencyMetric, AnomalyItem, DatasetItem } from '../types';
 
 export const mockUser: User = {
   id: 'u1',
@@ -183,6 +183,97 @@ export const mockCases: Case[] = [
         timestamp: '2026-03-26T09:15:00Z',
       },
     ],
+  },
+];
+
+export const mockAuditorUser: User = {
+  id: 'au1',
+  name: 'นภา ตรวจสอบดี',
+  email: 'napha.audit@example.com',
+  phone: '0933333333',
+  role: 'AUDITOR',
+  stats: {
+    totalReports: 0,
+    inProgress: 0,
+    resolved: 0,
+  },
+};
+
+export const mockAuditKPIs: AuditKPI = {
+  totalComplaints: 12450,
+  pendingCases: 840,
+  inProgressCases: 1250,
+  completedCases: 10360,
+  suspiciousClosures: 42,
+  duplicatedEvidenceFlags: 15,
+  slaCompliance: 92,
+  avgResolutionTime: '2.8 วัน',
+  avgSatisfactionScore: 4.6,
+};
+
+export const mockProvinces: ProvinceMetric[] = [
+  { id: 'p1', name: 'กรุงเทพมหานคร', totalComplaints: 5420, avgResolutionHours: 48, slaCompliance: 92, satisfactionScore: 4.5, trend: 'stable' },
+  { id: 'p2', name: 'เชียงใหม่', totalComplaints: 2150, avgResolutionHours: 56, slaCompliance: 88, satisfactionScore: 4.2, trend: 'up' },
+  { id: 'p3', name: 'ขอนแก่น', totalComplaints: 1840, avgResolutionHours: 52, slaCompliance: 90, satisfactionScore: 4.4, trend: 'stable' },
+  { id: 'p4', name: 'ชลบุรี', totalComplaints: 1650, avgResolutionHours: 42, slaCompliance: 94, satisfactionScore: 4.7, trend: 'down' },
+  { id: 'p5', name: 'สงขลา', totalComplaints: 1390, avgResolutionHours: 64, slaCompliance: 85, satisfactionScore: 4.0, trend: 'up' },
+];
+
+export const mockAgencyMetrics: AgencyMetric[] = [
+  { id: 'ag1', name: 'กรมทางหลวง (ศาลายา)', province: 'กรุงเทพมหานคร', totalComplaints: 850, avgResolutionHours: 42, slaCompliance: 95, satisfactionScore: 4.8, trend: 'stable' },
+  { id: 'ag2', name: 'ฝ่ายรักษาความสะอาด (เขตลาดพร้าว)', province: 'กรุงเทพมหานคร', totalComplaints: 1240, avgResolutionHours: 24, slaCompliance: 98, satisfactionScore: 4.9, trend: 'stable' },
+  { id: 'ag3', name: 'การไฟฟ้าส่วนภูมิภาค (เชียงใหม่)', province: 'เชียงใหม่', totalComplaints: 620, avgResolutionHours: 72, slaCompliance: 82, satisfactionScore: 3.8, trend: 'up' },
+];
+
+export const mockAnomalies: AnomalyItem[] = [
+  {
+    id: 'an1',
+    complaintId: 'c101',
+    title: 'ซ่อมท่อระบายน้ำ',
+    province: 'กรุงเทพมหานคร',
+    agency: 'ฝ่ายโยธา (เขตจตุจักร)',
+    anomalyType: 'ปิดงานเร็วเกินจริง',
+    severity: 'high',
+    detectedAt: '2026-04-08T09:00:00Z',
+    status: 'pending',
+    description: 'งานซ่อมท่อระบายน้ำขนาดใหญ่ถูกปิดสถานะเสร็จสิ้นภายใน 15 นาทีหลังจากรับเรื่อง',
+  },
+  {
+    id: 'an2',
+    complaintId: 'c105',
+    title: 'เก็บขยะตกค้าง',
+    province: 'ชลบุรี',
+    agency: 'เทศบาลเมืองแสนสุข',
+    anomalyType: 'ใช้รูปหลักฐานซ้ำ',
+    severity: 'medium',
+    detectedAt: '2026-04-07T14:30:00Z',
+    status: 'investigating',
+    description: 'รูปภาพหลักฐานการดำเนินการเสร็จสิ้นมีความคล้ายคลึงกับรูปงานเก่าในสัปดาห์ที่แล้ว',
+  },
+];
+
+export const mockDatasets: DatasetItem[] = [
+  {
+    id: 'd1',
+    title: 'สถิติเรื่องร้องเรียนรายจังหวัด (2569)',
+    description: 'รวบรวมจำนวนเรื่องร้องเรียน ประเภทปัญหา และสถานะการดำเนินการแยกตามจังหวัด',
+    format: 'CSV, JSON',
+    lastUpdated: '2026-04-01',
+    endpoint: '/api/v1/opendata/complaints-by-province',
+    fields: ['province_id', 'province_name', 'category', 'status_count', 'month'],
+    agency: 'ศูนย์รับเรื่องราวร้องทุกข์',
+    downloadCount: 1250,
+  },
+  {
+    id: 'd2',
+    title: 'คะแนนความพึงพอใจรายหน่วยงาน',
+    description: 'ข้อมูลคะแนนความพึงพอใจเฉลี่ยที่ได้จากประชาชนหลังปิดงาน',
+    format: 'JSON',
+    lastUpdated: '2026-04-05',
+    endpoint: '/api/v1/opendata/agency-satisfaction',
+    fields: ['agency_id', 'agency_name', 'avg_score', 'total_ratings'],
+    agency: 'กรุงเทพมหานคร',
+    downloadCount: 840,
   },
 ];
 

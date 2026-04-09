@@ -240,5 +240,65 @@
       "add_note": "เพิ่มหมายเหตุ",
       "close_job": "ปิดงาน"
     }
+  },
+  "audit": {
+    "nav": {
+      "overview": "ภาพรวม",
+      "analytics": "วิเคราะห์",
+      "anomaly": "สิ่งผิดปกติ",
+      "ranking": "อันดับ",
+      "open_data": "ข้อมูล"
+    },
+    "overview": {
+      "title": "ภาพรวมการตรวจสอบ",
+      "total_complaints": "เรื่องทั้งหมด",
+      "pending": "รอดำเนินการ",
+      "in_progress": "กำลังดำเนินการ",
+      "completed": "เสร็จสิ้น",
+      "suspicious": "ปิดงานผิดปกติ",
+      "nationwide_heatmap": "ความหนาแน่นรายพื้นที่",
+      "top_provinces": "จังหวัดที่มีเรื่องร้องเรียนสูงสุด",
+      "best_agencies": "หน่วยงานผลงานดีที่สุด"
+    },
+    "analytics": {
+      "title": "วิเคราะห์เปรียบเทียบ",
+      "fastest_provinces": "จังหวัดที่แก้ไขเร็วที่สุด",
+      "highest_avg_time": "หน่วยงานที่ใช้เวลาสูง",
+      "low_sla": "หน่วยงานที่มี SLA ต่ำ",
+      "benchmarking": "การเปรียบเทียบเกณฑ์มาตรฐาน"
+    },
+    "anomaly": {
+      "title": "สัญญาณผิดปกติ",
+      "types": {
+        "too_fast": "ปิดงานเร็วเกินจริง",
+        "duplicate_photo": "ใช้รูปหลักฐานซ้ำ",
+        "bulk_close": "ปิดงานจำนวนมากในเวลาสั้น",
+        "no_evidence": "เสร็จสิ้นแต่ไม่มีหลักฐาน",
+        "low_rating": "คะแนนต่ำผิดปกติ"
+      },
+      "severity": {
+        "low": "ต่ำ",
+        "medium": "กลาง",
+        "high": "สูง"
+      },
+      "action": {
+        "investigate": "ตรวจสอบ",
+        "flag": "ส่งต่อ",
+        "dismiss": "ปิดการแจ้งเตือน"
+      }
+    },
+    "ranking": {
+      "title": "อันดับหน่วยงานและพื้นที่",
+      "by_province": "จัดตามจังหวัด",
+      "by_agency": "จัดตามหน่วยงาน",
+      "sort_by": "จัดเรียงตาม"
+    },
+    "open_data": {
+      "title": "ข้อมูลสาธารณะ",
+      "tagline": "โปร่งใส ตรวจสอบได้ เข้าถึงได้",
+      "download": "ดาวน์โหลดข้อมูล",
+      "api_docs": "เอกสาร API",
+      "last_updated": "อัปเดตล่าสุด"
+    }
   }
 }
