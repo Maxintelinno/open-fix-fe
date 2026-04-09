@@ -1,0 +1,42 @@
+{
+  "app_name": "OpenFix",
+  "tagline": "Report, Track, Transparent",
+
+  "nav": {
+    "home": "Home",
+    "report": "Report",
+    "map": "Map",
+    "my_cases": "My Cases",
+    "profile": "Profile"
+  },
+
+  "common": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search",
+    "loading": "Loading...",
+    "no_data": "No Data",
+    "retry": "Retry"
+  },
+
+  "profile": {
+    "sections": {
+      "account": "Account Settings",
+      "support": "Support & Legal"
+    }
+  },
+
+  "categories": {
+    "road": "Roads",
+    "lighting": "Lighting",
+    "garbage": "Garbage",
+    "drainage": "Drainage",
+    "safety": "Safety",
+    "other": "Other"
+  }
+}
