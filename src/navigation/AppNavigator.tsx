@@ -6,14 +6,22 @@ import { RootStackParamList } from '../types';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import { AgencyTabNavigator } from './AgencyTabNavigator';
 import { AuditTabNavigator } from './AuditTabNavigator';
+
+// Screens
 import CaseDetailScreen from '../screens/citizen/CaseDetailScreen';
 import AgencyCaseDetailScreen from '../screens/agency/AgencyCaseDetailScreen';
 import AssignStaffScreen from '../screens/agency/AssignStaffScreen';
 import AnomalyDetailScreen from '../screens/audit/AnomalyDetailScreen';
 import ProvinceDetailScreen from '../screens/audit/ProvinceDetailScreen';
 import ProvinceRankingScreen from '../screens/audit/ProvinceRankingScreen';
+
+// Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import OTPScreen from '../screens/auth/OTPScreen';
+import RoleSelectionScreen from '../screens/auth/RoleSelectionScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import RegisterSuccessScreen from '../screens/auth/RegisterSuccessScreen';
+
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../theme';
 
@@ -42,6 +50,9 @@ export const AppNavigator = () => {
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="OTP" component={OTPScreen} />
+            <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
           </>
         ) : user?.role === 'AGENCY' ? (
           // AGENCY STACK

@@ -63,6 +63,8 @@ export interface User {
   email: string;
   phone: string;
   role: UserRole;
+  username: string;
+  password?: string;
   avatar?: string;
   stats: {
     totalReports: number;
@@ -131,9 +133,25 @@ export interface DatasetItem {
   downloadCount?: number;
 }
 
+export interface RegisterPayload {
+  fullName: string;
+  username: string;
+  phone: string;
+  email: string;
+  password?: string;
+  role: UserRole;
+  agencyName?: string;
+  department?: string;
+  position?: string;
+  organizationName?: string;
+}
+
 export type RootStackParamList = {
   Login: undefined;
   OTP: { phoneNumber: string };
+  RoleSelection: undefined;
+  Register: { role: UserRole };
+  RegisterSuccess: { role: UserRole };
   MainTabs: undefined; // Citizen Tabs
   AgencyTabs: undefined; // Agency Tabs
   AuditTabs: undefined; // Auditor Tabs

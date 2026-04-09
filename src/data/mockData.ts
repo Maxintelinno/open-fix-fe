@@ -6,6 +6,7 @@ export const mockUser: User = {
   email: 'somchai.city@example.com',
   phone: '0911111111',
   role: 'CITIZEN',
+  username: 'citizen1',
   stats: {
     totalReports: 12,
     inProgress: 3,
@@ -19,6 +20,7 @@ export const mockAgencyUser: User = {
   email: 'witsarut.gov@example.com',
   phone: '0922222222',
   role: 'AGENCY',
+  username: 'agency1',
   stats: {
     totalReports: 156,
     inProgress: 42,
@@ -192,6 +194,7 @@ export const mockAuditorUser: User = {
   email: 'napha.audit@example.com',
   phone: '0933333333',
   role: 'AUDITOR',
+  username: 'auditor1',
   stats: {
     totalReports: 0,
     inProgress: 0,

@@ -3,30 +3,61 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  TextInput, 
   TouchableOpacity, 
   SafeAreaView, 
   KeyboardAvoidingView, 
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  StatusBar
+  StatusBar,
+  ScrollView
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { theme } from '../../theme';
 import { CustomButton } from '../../components/CustomButton';
+import { FormInput } from '../../components/auth/FormInput';
 import { RootStackParamList } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const { signIn } = useAuth();
 
-  const handleSendOTP = () => {
-    if (phoneNumber.length >= 10) {
-      navigation.navigate('OTP', { phoneNumber });
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [userNotFound, setUserNotFound] = useState(false);
+
+  const handleLogin = async () => {
+    if (!identifier || !password) {
+      setError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+      return;
     }
+
+    setIsSubmitting(true);
+    setError('');
+    setUserNotFound(false);
+
+    try {
+      const result = await signIn(identifier, password);
+      if (!result.success) {
+        setError(result.error || 'เข้าสู่ระบบไม่สำเร็จ');
+        if (result.error?.includes('ไม่พบบัญชี')) {
+          setUserNotFound(true);
+        }
+      }
+    } catch (e) {
+      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRegister = () => {
+    navigation.navigate('RoleSelection');
   };
 
   return (
@@ -37,45 +68,93 @@ const LoginScreen: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.content}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.header}>
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoEmoji}>🛡️</Text>
+              <View style={[styles.logoCircle, theme.shadows.md]}>
+                <Text style={styles.logoEmoji}>🏙️</Text>
               </View>
+              <Text style={styles.welcomeText}>ยินดีต้อนรับกลับมา</Text>
               <Text style={styles.title}>{t('app_name')}</Text>
-              <Text style={styles.subtitle}>{t('auth.login_subtitle')}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Smart Civic Platform</Text>
+              </View>
             </View>
 
             <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>{t('auth.phone_label')}</Text>
-                <View style={[styles.inputContainer, theme.shadows.sm]}>
-                  <Text style={styles.prefix}>🇹🇭 +66</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.phone_placeholder')}
-                    keyboardType="phone-pad"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    maxLength={10}
-                  />
+              <FormInput
+                label="ชื่อผู้ใช้ หรือ เบอร์โทรศัพท์"
+                placeholder="ชื่อผู้ใช้ของคุณ"
+                value={identifier}
+                onChangeText={(text) => {
+                  setIdentifier(text);
+                  setError('');
+                }}
+                autoCapitalize="none"
+                icon="👤"
+              />
+
+              <FormInput
+                label="รหัสผ่าน"
+                placeholder="รหัสผ่านของคุณ"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setError('');
+                }}
+                secureTextEntry
+                icon="🔐"
+              />
+
+              {error ? (
+                <View style={[styles.errorCard, userNotFound && styles.errorCardNotFound]}>
+                  <Text style={styles.errorText}>
+                    {userNotFound ? '🔍 ' : '⚠️ '}
+                    {error}
+                  </Text>
+                  {userNotFound && (
+                    <TouchableOpacity style={styles.registerCTA} onPress={handleRegister}>
+                      <Text style={styles.registerCTAText}>สมัครสมาชิกเลนตอนนี้ →</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-              </View>
+              ) : null}
 
               <CustomButton
-                title={t('auth.get_otp')}
-                onPress={handleSendOTP}
-                disabled={phoneNumber.length < 10}
-                style={styles.button}
+                title="เข้าสู่ระบบ"
+                onPress={handleLogin}
+                loading={isSubmitting}
+                style={styles.loginButton}
               />
+
+              <TouchableOpacity style={styles.forgotPass}>
+                <Text style={styles.forgotPassText}>ลืมรหัสผ่านใช่ไหม?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.divider}>
+              <View style={styles.line} />
+              <Text style={styles.dividerText}>หรือ</Text>
+              <View style={styles.line} />
+            </View>
+
+            <View style={styles.registerSection}>
+              <Text style={styles.noAccountText}>ยังไม่ได้เป็นสมาชิก OpenFix?</Text>
+              <TouchableOpacity style={styles.registerSection} onPress={handleRegister}>
+                <Text style={styles.registerLinkText}>สมัครสมาชิกที่นี่</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>
                 {t('tagline')}
               </Text>
+              <Text style={styles.versionText}>Version 1.0.0 (MVP)</Text>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
@@ -85,92 +164,161 @@ const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   keyboardView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 28,
+    paddingTop: 60,
+    paddingBottom: 40,
     justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 44,
   },
   logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.secondary + '10',
+    width: 90,
+    height: 90,
+    borderRadius: 32,
+    backgroundColor: theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[100],
   },
   logoEmoji: {
-    fontSize: 40,
+    fontSize: 44,
+  },
+  welcomeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 40,
+    fontWeight: '900',
     color: theme.colors.text.primary,
-    marginBottom: 8,
+    marginBottom: 12,
+    letterSpacing: -1,
   },
-  subtitle: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
+  badge: {
+    backgroundColor: theme.colors.primary + '10',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: theme.colors.primary,
+    textTransform: 'uppercase',
   },
   form: {
     width: '100%',
   },
-  inputGroup: {
-    marginBottom: 24,
+  errorCard: {
+    backgroundColor: theme.colors.danger.bg,
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.danger.base + '20',
   },
-  label: {
+  errorCardNotFound: {
+    backgroundColor: theme.colors.secondary + '05',
+    borderColor: theme.colors.secondary + '20',
+  },
+  errorText: {
+    color: theme.colors.danger.text,
     fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.text.secondary,
-    marginBottom: 8,
-    marginLeft: 4,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 20,
   },
-  inputContainer: {
+  registerCTA: {
+    marginTop: 12,
+    alignItems: 'center',
+    backgroundColor: theme.colors.secondary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  registerCTAText: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  loginButton: {
+    height: 64,
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  forgotPass: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  forgotPassText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.gray[50],
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 60,
-    borderWidth: 1,
-    borderColor: theme.colors.gray[100],
+    marginVertical: 32,
   },
-  prefix: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.text.primary,
-    marginRight: 12,
-  },
-  input: {
+  line: {
     flex: 1,
-    fontSize: 18,
-    color: theme.colors.text.primary,
+    height: 1.5,
+    backgroundColor: theme.colors.gray[200],
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text.muted,
+  },
+  registerSection: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  noAccountText: {
+    fontSize: 15,
+    color: theme.colors.text.secondary,
+    marginBottom: 8,
     fontWeight: '500',
   },
-  button: {
-    height: 60,
-    borderRadius: 16,
+  registerLink: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  registerLinkText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: theme.colors.secondary,
   },
   footer: {
-    position: 'absolute',
-    bottom: 24,
-    left: 0,
-    right: 0,
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 13,
     color: theme.colors.text.muted,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  versionText: {
+    fontSize: 10,
+    color: theme.colors.text.muted,
+    opacity: 0.6,
   },
 });
 

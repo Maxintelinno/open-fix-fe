@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
-import { mockUser } from '../data/mockData';
+import { User, UserRole, RegisterPayload } from '../types';
+import { mockAuthService } from '../services/mockAuthService';
 
 interface AuthContextType {
   user: User | null;
   userToken: string | null;
   isLoading: boolean;
-  signIn: (phoneNumber: string) => Promise<void>;
+  signIn: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (payload: RegisterPayload) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
 }
 
@@ -29,29 +30,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     bootstrapAsync();
   }, []);
 
-  const signIn = async (phoneNumber: string) => {
-    // Determine role based on phone number
-    let role: UserRole = 'CITIZEN';
-    let name = 'สมชาย รักเมือง';
-
-    if (phoneNumber === '0922222222') {
-      role = 'AGENCY';
-      name = 'เจ้าหน้าที่โยธา (Agencies)';
-    } else if (phoneNumber === '0933333333') {
-      role = 'AUDITOR';
-      name = 'ผู้ตรวจสอบ (Auditor)';
+  const signIn = async (identifier: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const loggedInUser = await mockAuthService.login(identifier, password);
+      
+      if (loggedInUser) {
+        setUser(loggedInUser);
+        setUserToken('mock-auth-token-' + loggedInUser.role.toLowerCase());
+        return { success: true };
+      } else {
+        return { success: false, error: 'ไม่พบบัญชีผู้ใช้งาน หรือรหัสผ่านไม่ถูกต้อง' };
+      }
+    } catch (error) {
+      return { success: false, error: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ' };
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // Simulate login
-    const loggedInUser: User = {
-      ...mockUser,
-      phone: phoneNumber,
-      role: role,
-      name: name,
-    };
-
-    setUser(loggedInUser);
-    setUserToken('mock-auth-token-' + role.toLowerCase());
+  const register = async (payload: RegisterPayload) => {
+    setIsLoading(true);
+    try {
+      const result = await mockAuthService.register(payload);
+      
+      if (result.success && result.user) {
+        // If it's a citizen, we can sign them in immediately
+        if (payload.role === 'CITIZEN') {
+          setUser(result.user);
+          setUserToken('mock-auth-token-citizen');
+        }
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก' };
+      }
+    } catch (error) {
+      return { success: false, error: 'เกิดข้อผิดพลาดในการสมัครสมาชิก' };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signOut = () => {
@@ -60,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, userToken, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, userToken, isLoading, signIn, register, signOut }}>
       {children}
     </AuthContext.Provider>
   );

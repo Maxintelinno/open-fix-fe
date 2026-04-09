@@ -34,7 +34,7 @@ const OTPScreen: React.FC = () => {
     if (otp.length === 6) {
       setIsSubmitting(true);
       try {
-        await signIn(phoneNumber);
+        await signIn(phoneNumber, '123456'); // Mock password for legacy OTP flow
         // Navigation is handled by RootNavigator observing userToken
       } catch (error) {
         console.error('Login failed', error);
