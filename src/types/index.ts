@@ -143,7 +143,10 @@ export interface RegisterPayload {
   agencyName?: string;
   department?: string;
   position?: string;
+  employeeId?: string; // For AGENCY
   organizationName?: string;
+  auditExpertise?: string; // For AUDITOR
+  purposeOfUse?: string; // For AUDITOR
 }
 
 export type RootStackParamList = {

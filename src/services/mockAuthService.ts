@@ -68,7 +68,7 @@ export const mockAuthService = {
       email: payload.email,
       role: payload.role,
       username: payload.username,
-      password: payload.password || 'password123', // In a real app, this would be hashed
+      password: payload.password || 'password123',
     };
 
     registeredUsers.push(newUser);

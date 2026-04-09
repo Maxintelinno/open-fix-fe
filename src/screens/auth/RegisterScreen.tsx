@@ -26,6 +26,10 @@ const RegisterScreen: React.FC = () => {
   const { role } = route.params;
   const { register } = useAuth();
 
+  const isCitizen = role === 'CITIZEN';
+  const isAgency = role === 'AGENCY';
+  const isAuditor = role === 'AUDITOR';
+
   const [form, setForm] = useState({
     fullName: '',
     username: '',
@@ -36,7 +40,10 @@ const RegisterScreen: React.FC = () => {
     agencyName: '',
     department: '',
     position: '',
+    employeeId: '',
     organizationName: '',
+    auditExpertise: '',
+    purposeOfUse: '',
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
@@ -46,14 +53,17 @@ const RegisterScreen: React.FC = () => {
     const newErrors: Partial<Record<keyof typeof form, string>> = {};
 
     if (!form.fullName) newErrors.fullName = 'กรุณากรอกชื่อ-นามสกุลจริง';
-    if (!form.username) newErrors.username = 'กรุณากำหนดชื่อผู้ใช้';
-    
     if (!form.phone) newErrors.phone = 'กรุณากรอกเบอร์โทรศัพท์';
     else if (form.phone.length < 10) newErrors.phone = 'เบอร์โทรศัพท์ต้องมี 10 หลัก';
     
-    if (!form.email) newErrors.email = 'กรุณากรอกอีเมล';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+    // For citizen, email is optional but suggested
+    if (!isCitizen && !form.email) {
+      newErrors.email = 'กรุณากรอกอีเมลติดต่องาน';
+    } else if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+    }
 
+    if (!form.username) newErrors.username = 'กรุณากำหนดชื่อผู้ใช้';
     if (!form.password) newErrors.password = 'กรุณากำหนดรหัสผ่าน';
     else if (form.password.length < 6) newErrors.password = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
 
@@ -61,14 +71,15 @@ const RegisterScreen: React.FC = () => {
       newErrors.confirmPassword = 'รหัสผ่านไม่ตรงกัน';
     }
 
-    if (role === 'AGENCY') {
+    if (isAgency) {
       if (!form.agencyName) newErrors.agencyName = 'กรุณาระบุชื่อหน่วยงาน';
-      if (!form.position) newErrors.position = 'กรุณาระบุตำแหน่งของคุณ';
+      if (!form.position) newErrors.position = 'กรุณาระบุตำแหน่ง';
+      if (!form.employeeId) newErrors.employeeId = 'กรุณาระบุรหัสพนักงาน';
     }
 
-    if (role === 'AUDITOR') {
-      if (!form.organizationName) newErrors.organizationName = 'กรุณาระบุชื่อองค์กร/สังกัด';
-      if (!form.position) newErrors.position = 'กรุณาระบุตำแหน่งของคุณ';
+    if (isAuditor) {
+      if (!form.organizationName) newErrors.organizationName = 'กรุณาระบุชื่อองค์กร';
+      if (!form.purposeOfUse) newErrors.purposeOfUse = 'กรุณาระบุวัตถุประสงค์การใช้ข้อมูล';
     }
 
     setErrors(newErrors);
@@ -77,7 +88,7 @@ const RegisterScreen: React.FC = () => {
 
   const handleRegister = async () => {
     if (!validate()) {
-       Alert.alert('ข้อมูลไม่ครบถ้วน', 'กรุณาตรวจสอบข้อมูลที่ระบุอีกครั้ง');
+       Alert.alert('ข้อมูลไม่ครบถ้วน', 'กรุณาตรวจสอบความถูกต้องของข้อมูล');
        return;
     }
 
@@ -92,15 +103,17 @@ const RegisterScreen: React.FC = () => {
       role: role,
     };
 
-    if (role === 'AGENCY') {
+    if (isAgency) {
       payload.agencyName = form.agencyName;
       payload.department = form.department;
       payload.position = form.position;
+      payload.employeeId = form.employeeId;
     }
 
-    if (role === 'AUDITOR') {
+    if (isAuditor) {
       payload.organizationName = form.organizationName;
-      payload.position = form.position;
+      payload.auditExpertise = form.auditExpertise;
+      payload.purposeOfUse = form.purposeOfUse;
     }
 
     try {
@@ -111,30 +124,23 @@ const RegisterScreen: React.FC = () => {
         Alert.alert('สมัครสมาชิกไม่สำเร็จ', result.error);
       }
     } catch (e) {
-      Alert.alert('ข้อผิดพลาด', 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง');
+      Alert.alert('ข้อผิดพลาด', 'เกิดเหตุขัดข้อง กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getRoleTitle = () => {
-    switch(role) {
-      case 'CITIZEN': return 'บัญชีประชาชน';
-      case 'AGENCY': return 'บัญชีเจ้าหน้าที่หน่วยงาน';
-      case 'AUDITOR': return 'บัญชีผู้ตรวจสอบ';
-      default: return '';
-    }
-  };
-
-  const SectionHeader = ({ title, icon }: { title: string, icon: string }) => (
+  const SectionHeader = ({ title, icon, color }: { title: string, icon: string, color?: string }) => (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionIcon}>{icon}</Text>
+      <View style={[styles.sectionIconBg, { backgroundColor: color || theme.colors.primary + '10' }]}>
+        <Text style={styles.sectionIcon}>{icon}</Text>
+      </View>
       <Text style={styles.sectionTitle}>{title}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, isAuditor && styles.containerAuditor]}>
       <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -154,19 +160,38 @@ const RegisterScreen: React.FC = () => {
             </TouchableOpacity>
             
             <View style={styles.titleWrapper}>
-              <View style={styles.roleTag}>
-                 <Text style={styles.roleTagText}>{getRoleTitle()}</Text>
+              <View style={[
+                  styles.roleTag, 
+                  isAgency && styles.roleTagAgency,
+                  isAuditor && styles.roleTagAuditor
+              ]}>
+                 <Text style={[
+                     styles.roleTagText,
+                     isAgency && styles.roleTagTextAgency,
+                     isAuditor && styles.roleTagTextAuditor
+                 ]}>
+                     {isCitizen ? 'Citizen Registration' : isAgency ? 'Official Agency' : 'Audit Representative'}
+                 </Text>
               </View>
-              <Text style={styles.title}>สร้างบัญชีผู้ใช้งาน</Text>
-              <Text style={styles.subtitle}>กรุณากรอกข้อมูลให้ครบถ้วนเพื่อประสิทธิภาพในการใช้งานสูงสุด</Text>
+              <Text style={styles.title}>
+                 {isCitizen ? 'สมัครใช้งาน' : isAgency ? 'ลงทะเบียนเจ้าหน้าที่' : 'คำขอสิทธิ์ตรวจสอบ'}
+              </Text>
+              <Text style={styles.subtitle}>
+                 {isCitizen ? 'ร่วมสร้างสรรค์เมืองให้น่าอยู่ด้วยกัน' : isAgency ? 'ช่องทางสำหรับหน่วยงานรัฐและผู้ช่วยปฏิบัติงาน' : 'ช่องทางสำหรับองค์กรอิสระ สื่อ และประชาชนผู้มีส่วนร่วม'}
+              </Text>
             </View>
           </View>
 
           <View style={styles.form}>
-            <SectionHeader title="ข้อมูลส่วนตัว" icon="👤" />
+            <SectionHeader 
+               title="ข้อมูลยืนยันตัวตน" 
+               icon="👤" 
+               color={isAgency ? theme.colors.primary + '20' : isAuditor ? theme.colors.secondary + '20' : undefined} 
+            />
+            
             <FormInput
-              label="ชื่อ-นามสกุล"
-              placeholder="กรอกชื่อและนามสกุลจริง"
+              label="ชื่อ-นามสกุลจริง"
+              placeholder="Ex. สมชาย รักดี"
               value={form.fullName}
               onChangeText={(text) => setForm({...form, fullName: text})}
               error={errors.fullName}
@@ -174,7 +199,7 @@ const RegisterScreen: React.FC = () => {
             />
 
             <FormInput
-              label="เบอร์โทรศัพท์"
+              label="เบอร์โทรศัพท์สำหรับใช้งาน"
               placeholder="0XXXXXXXXX"
               value={form.phone}
               onChangeText={(text) => setForm({...form, phone: text})}
@@ -184,70 +209,92 @@ const RegisterScreen: React.FC = () => {
               icon="📱"
             />
 
-            <FormInput
-              label="อีเมล"
-              placeholder="yourname@example.com"
-              value={form.email}
-              onChangeText={(text) => setForm({...form, email: text})}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={errors.email}
-              icon="📧"
-            />
+            {(isAgency || isAuditor) && (
+              <FormInput
+                label="อีเมลปฏิบัติงาน"
+                placeholder="your.work@email.com"
+                value={form.email}
+                onChangeText={(text) => setForm({...form, email: text})}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email}
+                icon="📧"
+              />
+            )}
 
-            {(role === 'AGENCY' || role === 'AUDITOR') && (
+            {isAgency && (
               <>
                 <View style={styles.divider} />
-                <SectionHeader 
-                   title={role === 'AGENCY' ? "ข้อมูลหน่วยงาน" : "ข้อมูลสังกัด"} 
-                   icon={role === 'AGENCY' ? "🏢" : "🔍"} 
-                />
+                <SectionHeader title="ข้อมูลตำแหน่งหน้าที่" icon="🏢" color={theme.colors.info.base + '20'} />
                 
-                {role === 'AGENCY' && (
-                  <FormInput
-                    label="ชื่อหน่วยงาน"
-                    placeholder="เช่น สำนักงานเขตลาดพร้าว"
-                    value={form.agencyName}
-                    onChangeText={(text) => setForm({...form, agencyName: text})}
-                    error={errors.agencyName}
-                    icon="🏛️"
-                  />
-                )}
-
-                {role === 'AUDITOR' && (
-                  <FormInput
-                    label="ชื่อองค์กร / สังกัด"
-                    placeholder="เช่น เพจปฏิบัติการหมาเฝ้าบ้าน"
-                    value={form.organizationName}
-                    onChangeText={(text) => setForm({...form, organizationName: text})}
-                    error={errors.organizationName}
-                    icon="🔎"
-                  />
-                )}
+                <FormInput
+                  label="สังกัดหน่วยงาน"
+                  placeholder="เช่น กทม. (เขตปทุมวัน)"
+                  value={form.agencyName}
+                  onChangeText={(text) => setForm({...form, agencyName: text})}
+                  error={errors.agencyName}
+                  icon="🏛️"
+                />
 
                 <FormInput
-                  label="ตำแหน่งงาน"
-                  placeholder="ตำแหน่งปัจจุบันของคุณ"
+                  label="รหัสพนักงาน/เจ้าหน้าที่"
+                  placeholder="Employee ID / Badge Number"
+                  value={form.employeeId}
+                  onChangeText={(text) => setForm({...form, employeeId: text})}
+                  error={errors.employeeId}
+                  icon="🆔"
+                />
+
+                <FormInput
+                  label="ตำแหน่งงานปัจจุบัน"
+                  placeholder="เช่น วิศวกรโยธา"
                   value={form.position}
                   onChangeText={(text) => setForm({...form, position: text})}
                   error={errors.position}
                   icon="👔"
                 />
+              </>
+            )}
 
-                <View style={styles.helperNote}>
-                  <Text style={styles.helperText}>
-                    💡 บัญชี {role === 'AGENCY' ? 'เจ้าหน้าที่' : 'ผู้ตรวจสอบ'} จะต้องผ่านการอนุมัติจากผู้ดูแลระบบก่อน จึงจะสามารถเริ่มใช้งานฟีเจอร์ระดับสูงได้
-                  </Text>
-                </View>
+            {isAuditor && (
+              <>
+                <View style={styles.divider} />
+                <SectionHeader title="รายละเอียดการตรวจสอบ" icon="⚖️" color={theme.colors.secondary + '20'} />
+                
+                <FormInput
+                  label="องค์กร / สื่อ / กลุ่มสังกัด"
+                  placeholder="เช่น เพจปฏิบัติการหมาเฝ้าบ้าน"
+                  value={form.organizationName}
+                  onChangeText={(text) => setForm({...form, organizationName: text})}
+                  error={errors.organizationName}
+                  icon="🔍"
+                />
+
+                <FormInput
+                  label="ความเชี่ยวชาญการตรวจสอบ"
+                  placeholder="เช่น เผยแพร่ข้อมูล, วิเคราะห์งบประมาณ"
+                  value={form.auditExpertise}
+                  onChangeText={(text) => setForm({...form, auditExpertise: text})}
+                  icon="🛡️"
+                />
+
+                <FormInput
+                  label="วัตถุประสงค์การใช้ข้อมูล"
+                  placeholder="เพื่อส่งเสริมความโปร่งใสในโครงการ..."
+                  value={form.purposeOfUse}
+                  onChangeText={(text) => setForm({...form, purposeOfUse: text})}
+                  error={errors.purposeOfUse}
+                  icon="📝"
+                />
               </>
             )}
 
             <View style={styles.divider} />
-            <SectionHeader title="การเข้าสู่ระบบ" icon="🔐" />
+            <SectionHeader title="กำหนดความปลอดภัย" icon="🔐" />
             
             <FormInput
-              label="ชื่อผู้ใช้ (Username)"
-              placeholder="อังกฤษหรือตัวเลขสำหรับเข้าสู่ระบบ"
+              label="Username"
+              placeholder="ตัวย่ออังกฤษหรือเบอร์โทร"
               value={form.username}
               onChangeText={(text) => setForm({...form, username: text})}
               autoCapitalize="none"
@@ -256,8 +303,8 @@ const RegisterScreen: React.FC = () => {
             />
 
             <FormInput
-              label="รหัสผ่าน"
-              placeholder="อย่างน้อย 6 ตัวอักษร"
+              label="รหัสผ่านเข้าใช้งาน"
+              placeholder="ความยาว 6 ตัวอักษรขึ้นไป"
               value={form.password}
               onChangeText={(text) => setForm({...form, password: text})}
               secureTextEntry
@@ -266,8 +313,8 @@ const RegisterScreen: React.FC = () => {
             />
 
             <FormInput
-              label="ยืนยันรหัสผ่าน"
-              placeholder="กรอกรหัสผ่านอีกครั้ง"
+              label="ยืนยันรหัสผ่านอีกครั้ง"
+              placeholder="Confirm Password"
               value={form.confirmPassword}
               onChangeText={(text) => setForm({...form, confirmPassword: text})}
               secureTextEntry
@@ -278,15 +325,19 @@ const RegisterScreen: React.FC = () => {
             <View style={styles.footerSpacing} />
 
             <CustomButton
-              title="สร้างบัญชีผู้ใช้งาน"
+              title={isCitizen ? "สมัครสมาชิกเสร็จสิ้น" : "ส่งคำขอลงทะเบียน"}
               onPress={handleRegister}
               loading={isSubmitting}
-              style={styles.submitButton}
+              style={[
+                  styles.submitButton,
+                  isAgency && styles.submitButtonAgency,
+                  isAuditor && styles.submitButtonAuditor
+              ]}
             />
             
             <View style={styles.termsBox}>
                <Text style={styles.termsText}>
-                 ในการกดสร้างบัญชี คุณยอมรับ <Text style={styles.termsLink}>ข้อตกลงการใช้งาน</Text> และ <Text style={styles.termsLink}>นโยบายความเป็นส่วนตัว</Text> ของ OpenFix
+                 โดยการกดสมัคร คุณยอมรับ <Text style={styles.termsLink}>ข้อตกลงและนโยบายความเป็นส่วนตัว</Text> ของ OpenFix
                </Text>
             </View>
           </View>
@@ -299,7 +350,10 @@ const RegisterScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#FBFDFF',
+  },
+  containerAuditor: {
+    backgroundColor: '#FCFCFE',
   },
   keyboardView: {
     flex: 1,
@@ -313,19 +367,18 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   backButton: {
-    marginBottom: 24,
-    paddingVertical: 8,
+    marginBottom: 20,
+    paddingVertical: 4,
   },
   backButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: theme.colors.text.secondary,
+    opacity: 0.7,
   },
-  titleWrapper: {
-    marginTop: 4,
-  },
+  titleWrapper: {},
   title: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: '900',
     color: theme.colors.text.primary,
     letterSpacing: -1,
@@ -336,20 +389,34 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginTop: 8,
     fontWeight: '500',
+    opacity: 0.8,
   },
   roleTag: {
     alignSelf: 'flex-start',
-    backgroundColor: theme.colors.secondary + '10',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: theme.colors.primary + '10',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  roleTagAgency: {
+    backgroundColor: theme.colors.primary,
+  },
+  roleTagAuditor: {
+    backgroundColor: theme.colors.secondary,
   },
   roleTagText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: theme.colors.secondary,
+    fontSize: 10,
+    fontWeight: '900',
+    color: theme.colors.primary,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  roleTagTextAgency: {
+    color: '#FFF',
+  },
+  roleTagTextAuditor: {
+    color: '#FFF',
   },
   form: {
     width: '100%',
@@ -358,47 +425,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: 8,
+    marginTop: 4,
+  },
+  sectionIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
   },
   sectionIcon: {
-    fontSize: 18,
-    marginRight: 8,
+    fontSize: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: theme.colors.text.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   divider: {
     height: 1,
     backgroundColor: theme.colors.gray[100],
     marginVertical: 24,
-  },
-  helperNote: {
-    backgroundColor: theme.colors.warning.bg,
-    padding: 18,
-    borderRadius: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: theme.colors.warning.base + '20',
-  },
-  helperText: {
-    fontSize: 13,
-    color: theme.colors.warning.text,
-    fontWeight: '600',
-    lineHeight: 20,
+    opacity: 0.5,
   },
   footerSpacing: {
-    height: 12,
+    height: 20,
   },
   submitButton: {
     height: 64,
     borderRadius: 20,
-    marginTop: 12,
+    marginTop: 10,
+  },
+  submitButtonAgency: {
+    backgroundColor: theme.colors.primary,
+  },
+  submitButtonAuditor: {
+    backgroundColor: theme.colors.secondary,
   },
   termsBox: {
-    marginTop: 20,
+    marginTop: 22,
     paddingHorizontal: 12,
   },
   termsText: {
@@ -409,8 +476,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   termsLink: {
-    color: theme.colors.secondary,
+    color: theme.colors.text.primary,
     fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });
 
